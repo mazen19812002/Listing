@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Listening Comprehension Test</title>
+    <style>
+        :root {
+            --base-font-size: 20px;
+            --primary-bg: #e0f2fe; /* Light blue background */
+            --dark-blue: #0c4a6e;
+            --text-main: #0f172a;
+            --success-green: #16a34a; /* Green for correct */
+            --error-red: #dc2626; /* Red for wrong */
+            --white: #ffffff;
+            --transition-speed: 0.3s;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "Segoe UI", Tahoma, sans-serif;
+            background-color: var(--primary-bg);
+            color: var(--text-main);
+            font-size: var(--base-font-size);
+            line-height: 1.4;
+            padding-top: 140px; 
+            padding-bottom: 70px;
+            transition: padding-top var(--transition-speed) ease;
+        }
+
+        body.header-hidden {
+            padding-top: 70px;
+        }
+
+        /* Top Bar Navigation */
+        .top-bar-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            transition: transform var(--transition-speed) ease;
+            background: var(--white);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .top-bar-container.hidden {
+            transform: translateY(-80px);
+        }
+
+        .top-bar-content {
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            border-bottom: 2px solid #cbd5e1;
+        }
+
+        .audio-bar {
+            width: 100%;
+            height: 60px;
+            background: #f8fafc;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            border-bottom: 1px solid #94a3b8;
+        }
+
+        .audio-player {
+            width: 100%;
+            height: 40px;
+        }
+
+        .header-toggle {
+            position: absolute;
+            bottom: -35px;
+            right: 30px;
+            background: var(--dark-blue);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 0 0 12px 12px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        /* Tabs and Controls */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            background: #f1f5f9;
+            padding: 6px;
+            border-radius: 12px;
+        }
+
+        .tab-btn {
+            padding: 12px 30px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            border-radius: 8px;
+            transition: all var(--transition-speed);
+            font-size: 0.9rem;
+            color: var(--dark-blue);
+        }
+
+        .tab-btn.active {
+            background: var(--dark-blue);
+            color: white;
+            font-weight: 600;
+        }
+
+        .zoom-controls {
+            display: flex;
+            gap: 15px;
+        }
+
+        .zoom-btn {
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+        }
+
+        .zoom-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .zoom-in { background-color: var(--success-green); }
+        .zoom-out { background-color: var(--error-red); }
+
+        /* Titles - Thin and Stylish */
+        h2 {
+            font-weight: 100;
+            text-transform: uppercase;
+            letter-spacing: 8px;
+            text-align: center;
+            margin: 20px 0;
+            font-size: 2.2rem;
+            color: var(--dark-blue);
+        }
+
+        .main-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .content-panel {
+            display: none;
+        }
+
+        .content-panel.active {
+            display: block;
+        }
+
+        /* Question Cards */
+        .question-card {
+            background: var(--white);
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 16px;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .question-card:hover {
+            transform: scale(1.02); /* Hover scale effect */
+            border-color: var(--dark-blue);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .question-text {
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: block;
+            color: #1e293b;
+            font-size: 1.1em;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 12px;
+        }
+
+        .option-btn {
+            text-align: left;
+            padding: 14px 20px;
+            border: 2px solid #e2e8f0;
+            background: #ffffff;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1em;
+            color: var(--text-main);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            background: #f0f9ff;
+            border-color: var(--dark-blue);
+            transform: translateY(-2px);
+        }
+
+        .option-btn.correct {
+            background-color: var(--success-green) !important;
+            color: white !important;
+            border-color: #14532d !important;
+            font-weight: bold;
+        }
+
+        .option-btn.wrong {
+            background-color: var(--error-red) !important;
+            color: white !important;
+            border-color: #7f1d1d !important;
+        }
+
+        .option-btn:disabled {
+            cursor: default;
+        }
+
+        /* Transcript Styling */
+        .transcript-box {
+            background: var(--white);
+            padding: 40px;
+            border-radius: 20px;
+            line-height: 1.8;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            white-space: pre-line;
+        }
+
+        .speaker {
+            font-weight: 900;
+            color: var(--dark-blue);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: inline-block;
+            min-width: 100px;
+        }
+
+        /* Footer */
+        footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            background: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--dark-blue);
+            border-top: 3px solid #cbd5e1;
+            z-index: 1000;
+            text-align: center;
+            padding: 0 10px;
+        }
+
+        @media (max-width: 768px) {
+            .top-bar-content { flex-direction: column; height: auto; padding: 15px; gap: 15px;}
+            .top-bar-container.hidden { transform: translateY(-135px); }
+            body { padding-top: 210px; }
+            body.header-hidden { padding-top: 80px; }
+            .options-grid { grid-template-columns: 1fr; }
+            h2 { font-size: 1.5rem; letter-spacing: 4px; }
+        }
+    </style>
+</head>
+<body id="testBody">
+
+    <div class="top-bar-container" id="topBar">
+        <div class="top-bar-content">
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('test')">Listening Test</button>
+                <button class="tab-btn" onclick="switchTab('transcript')">Transcript</button>
+            </div>
+            <div class="zoom-controls">
+                <button class="zoom-btn zoom-out" title="Decrease Text Size" onclick="changeZoom(-2)">-</button>
+                <button class="zoom-btn zoom-in" title="Increase Text Size" onclick="changeZoom(2)">+</button>
+            </div>
+        </div>
+        
+        <div class="audio-bar">
+            <audio controls class="audio-player">
+                <source src="00.mp3" type="audio/mpeg">
+                Your browser does not support the audio element.
+            </audio>
+        </div>
+
+        <button class="header-toggle" onclick="toggleHeader()" id="toggleBtn">Hide Controls</button>
+    </div>
+
+    <main class="main-container" id="mainContent">
+        <div id="testPanel" class="content-panel active">
+            <h2>Listening Test</h2>
+            <div id="questionsContainer"></div>
+        </div>
+
+        <div id="transcriptPanel" class="content-panel">
+            <h2>Audio Transcript</h2>
+            <div class="transcript-box" id="transcriptContent"></div>
+        </div>
+    </main>
+
+    <footer>
+        All rights are reserved to Dr. Mazen Badawy – Doctorate of English Teaching & Testing
+    </footer>
+
+    <script>
+        // Distributed answers: A=8, B=7, C=8, D=7
+        const questions = [
+            { q: "What is the main purpose of the workshop?", a: 0, o: ["To discuss career development and promotion", "To train engineers in advanced software design", "To explain technical engineering theories", "To prepare students for final exams"] },
+            { q: "Why is job promotion an interesting topic for students?", a: 2, o: ["It explains how to avoid difficult tasks", "It shows how to start a new company", "It helps them understand career growth", "It focuses only on financial rewards"] },
+            { q: "How is job promotion described in the conversation?", a: 1, o: ["A simple change in office location", "A reward for consistent performance", "A routine annual company procedure", "A transfer to a different department"] },
+            { q: "What usually comes with a promotion?", a: 1, o: ["Fewer working hours and tasks", "More responsibilities and better pay", "Less interaction with management", "Reduced expectations from supervisors"] },
+            { q: "Why is promotion not automatic?", a: 1, o: ["Because companies limit promotions yearly", "Because it depends on effort and planning", "Because engineers rarely request it", "Because it requires changing companies"] },
+            { q: "What do companies look for before promoting someone?", a: 1, o: ["Employees who avoid risks completely", "Workers who add value to projects", "Staff who work independently only", "People who demand higher salaries"] },
+            { q: "Why is promotion important in engineering?", a: 2, o: ["It reduces technical responsibilities", "It limits project involvement", "It allows work on complex projects", "It removes teamwork requirements"] },
+            { q: "What career paths are mentioned?", a: 2, o: ["Marketing and advertising roles", "Finance and accounting roles", "Management or technical specialist paths", "Sales or customer service paths"] },
+            { q: "Besides salary, what does promotion provide?", a: 1, o: ["Fewer deadlines and meetings", "Recognition and professional growth", "Less accountability for mistakes", "Guaranteed long-term employment"] },
+            { q: "What improves job satisfaction?", a: 1, o: ["Avoiding communication with managers", "Feeling appreciated by the organization", "Completing tasks with minimum effort", "Working without team cooperation"] },
+            { q: "What is the first practical step for promotion?", a: 1, o: ["Changing departments frequently", "Delivering high-quality work on time", "Avoiding challenging assignments", "Requesting promotion immediately"] },
+            { q: "Why is volunteering for challenges important?", a: 3, o: ["It reduces daily workload pressure", "It guarantees an immediate raise", "It prevents performance evaluations", "It shows initiative and leadership"] },
+            { q: "What skill is often underestimated by engineers?", a: 2, o: ["Physical endurance in projects", "Financial investment management", "Clear and effective communication", "Office decoration planning"] },
+            { q: "Why are communication skills important?", a: 0, o: ["They help explain ideas clearly", "They replace technical knowledge", "They remove the need for teamwork", "They reduce project complexity"] },
+            { q: "What role does networking play?", a: 3, o: ["It replaces professional competence", "It guarantees automatic promotion", "It reduces formal evaluations", "It creates trust within the company"] },
+            { q: "Why is trust important for promotion?", a: 0, o: ["Managers need confidence in reliability", "Teams prefer informal leadership", "Employees must avoid supervision", "Projects require less documentation"] },
+            { q: "Why must engineers continue learning?", a: 0, o: ["Because technology changes rapidly", "Because managers demand certificates", "Because learning replaces experience", "Because promotions require exams"] },
+            { q: "Which activity strengthens an engineer’s profile?", a: 2, o: ["Ignoring new technological updates", "Avoiding additional responsibilities", "Earning certifications or degrees", "Focusing only on daily routines"] },
+            { q: "Why should engineers express career goals?", a: 3, o: ["Managers automatically know ambitions", "It replaces performance reviews", "It reduces competition at work", "It shows readiness for responsibility"] },
+            { q: "When can engineers discuss achievements?", a: 0, o: ["During annual performance reviews", "After resigning from the company", "Before completing assigned projects", "During casual office conversations"] },
+            { q: "What motivates engineers to improve skills?", a: 3, o: ["Fear of losing their position", "Limited technical opportunities", "Reduced project involvement", "Higher pay and recognition"] },
+            { q: "What does stepping out of comfort zones show?", a: 2, o: ["Lack of preparation and caution", "Desire to avoid accountability", "Confidence and professional ambition", "Preference for simple tasks"] },
+            { q: "How can engineers add value?", a: 0, o: ["By meeting deadlines efficiently", "By refusing collaborative projects", "By minimizing communication efforts", "By focusing on personal interests"] },
+            { q: "What may promotion lead to?", a: 3, o: ["Reduced participation in decisions", "Elimination of responsibilities", "Transfer to unrelated roles", "Leadership of major projects"] },
+            { q: "What should engineers avoid if they want promotion?", a: 2, o: ["Producing quality work consistently", "Taking initiative in projects", "Remaining passive and unnoticeable", "Learning modern technologies"] },
+            { q: "Why is professional growth valuable?", a: 0, o: ["It increases satisfaction and confidence", "It decreases financial opportunities", "It limits workplace influence", "It reduces organizational trust"] },
+            { q: "What is a sign of leadership potential?", a: 3, o: ["Avoiding complex assignments", "Refusing team collaboration", "Limiting communication with peers", "Taking responsibility for challenges"] },
+            { q: "What helps managers evaluate candidates?", a: 0, o: ["Clear communication and performance", "Personal friendships only", "Years of service alone", "Informal workplace discussions"] },
+            { q: "How is the workshop discussion organized?", a: 2, o: ["Around technical software training", "Around salary negotiation methods", "Around definition and strategies", "Around company recruitment policies"] },
+            { q: "What is the overall tone of the conversation?", a: 3, o: ["Critical of corporate management", "Focused on financial complaints", "Opposed to workplace advancement", "Realistic and professionally encouraging"] }
+        ];
+
+        const transcriptRaw = `Speaker 1: Our department is organizing a career development workshop for engineering students, and we’ve been asked to discuss job promotion for engineers. I think it’s a topic that will attract a lot of interest.
+Speaker 2: I agree. Many engineering students focus mainly on technical skills, but they don’t always understand how career advancement works in real companies.
+Speaker 1: Exactly. So, to begin with, we should clearly explain what a job promotion actually means in a professional context.
+Speaker 2: A job promotion is not just a change in title. It’s usually a reward for consistent performance, dedication, and the ability to handle greater responsibilities. It often includes a higher salary, improved benefits, and sometimes leadership duties.
+Speaker 1: That’s an important point. We should also clarify that promotion is not automatic. It requires effort, planning, and sometimes strategic career decisions.
+Speaker 2: True. Engineers need to understand that companies promote individuals who add real value to projects and contribute to team success.
+Speaker 1: Why do you think promotion is especially important for engineers compared to other professions?
+Speaker 2: Because engineering is a field where innovation and problem-solving are essential. A promotion often allows engineers to work on more complex systems, lead major projects, or influence technical decisions. That can be very motivating.
+Speaker 1: Yes, and it can also open doors to managerial or specialist roles, depending on the career path they choose.
+Speaker 2: Exactly. Some engineers prefer to move into management, while others aim to become technical experts. Promotion can support either direction.
+Speaker 1: We should also mention that promotions typically improve financial stability. Higher salaries and bonuses can significantly enhance an engineer’s quality of life.
+Speaker 2: Definitely. Financial incentives are important, but recognition and professional growth are equally valuable. Feeling appreciated by the organization increases job satisfaction.
+Speaker 1: That’s true. Now, what practical steps can engineers take to improve their chances of promotion?
+Speaker 2: First, they must exceed expectations in their current roles. Delivering high-quality work on time and solving problems efficiently is essential.
+Speaker 1: I would add that volunteering for challenging tasks can demonstrate initiative and leadership potential.
+Speaker 2: Yes, taking responsibility for difficult assignments shows confidence and ambition. Managers usually notice employees who step out of their comfort zones.
+Speaker 1: Another key factor is communication skills. Engineers sometimes underestimate how important it is to explain their ideas clearly.
+Speaker 2: Absolutely. Strong communication helps in teamwork, presentations, and negotiations. It can make a big difference when management evaluates candidates for promotion.
+Speaker 1: Networking within the company is also crucial. Building professional relationships with supervisors and colleagues creates trust.
+Speaker 2: And trust is essential when companies consider someone for a higher position. Managers need to feel confident in that person’s reliability and professionalism.
+Speaker 1: Engineers should also invest in continuous learning. Technology changes rapidly, so staying updated with new tools and software is necessary.
+Speaker 2: I agree. Earning certifications, attending workshops, or even pursuing postgraduate studies can strengthen their professional profile.
+Speaker 1: Finally, engineers should communicate their career goals clearly. Sometimes managers are not aware of an employee’s ambitions.
+Speaker 2: Exactly. By discussing achievements during performance reviews and expressing interest in advancement, engineers show that they are ready for more responsibility.
+Speaker 1: So, in our workshop, we can structure the discussion around definition, importance, and practical strategies for promotion.
+Speaker 2: That sounds well organized. It will provide students with realistic expectations and clear guidance for their future careers.
+Speaker 1: Great. I believe this approach will make the workshop both practical and inspiring.
+Speaker 2: I agree. It should help engineering students think seriously about their long-term professional development.`;
+
+        let currentFontSize = 20;
+        let headerVisible = true;
+
+        function init() {
+            renderQuestions();
+            renderTranscript();
+        }
+
+        function toggleHeader() {
+            const topBar = document.getElementById('topBar');
+            const body = document.body;
+            const btn = document.getElementById('toggleBtn');
+            headerVisible = !headerVisible;
+
+            if (headerVisible) {
+                topBar.classList.remove('hidden');
+                body.classList.remove('header-hidden');
+                btn.innerText = "Hide Controls";
+            } else {
+                topBar.classList.add('hidden');
+                body.classList.add('header-hidden');
+                btn.innerText = "Show Controls";
+            }
+        }
+
+        function renderQuestions() {
+            const container = document.getElementById('questionsContainer');
+            questions.forEach((item, qIndex) => {
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                card.innerHTML = `
+                    <span class="question-text">${qIndex + 1}. ${item.q}</span>
+                    <div class="options-grid" id="q-grid-${qIndex}">
+                        ${item.o.map((opt, oIndex) => `
+                            <button class="option-btn" onclick="checkAnswer(${qIndex}, ${oIndex}, this)">
+                                <strong>${String.fromCharCode(65 + oIndex)}</strong>.&nbsp;${opt}
+                            </button>
+                        `).join('')}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderTranscript() {
+            const box = document.getElementById('transcriptContent');
+            const lines = transcriptRaw.split('\n');
+            let formatted = "";
+            lines.forEach(line => {
+                const colonIdx = line.indexOf(':');
+                if(colonIdx !== -1) {
+                    const speaker = line.substring(0, colonIdx);
+                    const text = line.substring(colonIdx + 1);
+                    formatted += `<span class="speaker">${speaker}:</span> ${text}\n`;
+                } else {
+                    formatted += line + '\n';
+                }
+            });
+            box.innerHTML = formatted;
+        }
+
+        function checkAnswer(qIdx, selectedIdx, btn) {
+            const correctIdx = questions[qIdx].a;
+            const grid = document.getElementById(`q-grid-${qIdx}`);
+            const buttons = grid.querySelectorAll('.option-btn');
+
+            buttons.forEach(b => b.disabled = true);
+            buttons[correctIdx].classList.add('correct');
+
+            if (selectedIdx !== correctIdx) {
+                btn.classList.add('wrong');
+            }
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.content-panel').forEach(p => p.classList.remove('active'));
+
+            if (tab === 'test') {
+                document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
+                document.getElementById('testPanel').classList.add('active');
+            } else {
+                document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
+                document.getElementById('transcriptPanel').classList.add('active');
+            }
+            window.scrollTo(0, 0);
+        }
+
+        function changeZoom(delta) {
+            currentFontSize = Math.min(Math.max(currentFontSize + delta, 16), 48);
+            document.getElementById('mainContent').style.fontSize = currentFontSize + 'px';
+            document.querySelectorAll('h2').forEach(h => {
+                h.style.fontSize = (currentFontSize * 1.1) + 'px';
+            });
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
